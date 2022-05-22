@@ -1,22 +1,8 @@
 ---
 title: "Estadistica"
-author: " "
+author: "Laura Piñeros"
 date: "2022"
-output: 
-  html_document:
-    theme: spacelab
-    highlight: tango
-    fig_width: 7
-    fig_height: 6
-    fig_caption: yes
-    code_folding: hide
-    number_sections: yes
-    toc: yes
-    toc_float:
-      collapsed: yes
-      smooth_scroll: no
-  pdf_document:
-    toc: yes
+output: rmdformats::readthedown
 ---
 
 ```{r setup, include=FALSE}
@@ -34,7 +20,6 @@ La siguiente tabla contiene, en un editable Excel, dos variables: la primera es 
 Importamos las librerías suficientes para nuestro estudio, 
 
 ```{r,warning=FALSE}
-
 suppressPackageStartupMessages({
 library(readxl) 
 library(knitr)
@@ -47,7 +32,15 @@ library(moments)
 library(tables)
 library(car)
 library(nortest)
+library(knitr)
+library(kableExtra)
+library(summarytools)
 })
+```
+
+
+```{r,warning=FALSE}
+
 
 
 craneos <- read_excel("C:/Users/Laura/Dropbox/UCM/Estadistica/Tarea/Libro1.xlsx")
@@ -58,4 +51,96 @@ source('Funciones.R')
 ```
 
 ***
+# Análisis Descriptivo 
+
+```{r}
+str(datos)
+```
+
+
+Renombremos las variables y convirtamos la variable Epoca historica en factor, 
+
+```{r}
+names(datos) <- c('Epoca_historica','Anchura_del_craneo')
+datos$Epoca_historica <- factor(datos$Epoca_historica, labels=c("1", "2"))
+
+ldf <- split(datos, datos$Epoca_historica)
+ldf_1 <- ldf$`1`
+ldf_2 <- ldf$`2`
+ldf1_anchura_craneo <-ldf_1$Anchura_del_craneo
+ldf2_anchura_craneo <-ldf_2$Anchura_del_craneo
+```
+
+
+```{r}
+st_options(descr.silent = TRUE)
+as.data.frame(descr(ldf1_anchura_craneo,
+      stats     = c("mean", "sd"),
+      transpose = TRUE,
+      headings  = TRUE,
+      round.digits = 2))
+```
+
+```{r echo=TRUE}
+min <- min(ldf1_anchura_craneo, na.rm = TRUE)
+q1 <- quantile(ldf1_anchura_craneo, probs = 0.25, na.rm = TRUE)
+media <- mean.default(ldf1_anchura_craneo, na.rm = TRUE)
+media_rec <- mean.default(ldf1_anchura_craneo, trim = 0.025, na.rm = TRUE)
+mediana <- median.default(ldf1_anchura_craneo, na.rm = TRUE)
+moda <- mfv(ldf1_anchura_craneo)
+var <- var(ldf1_anchura_craneo, na.rm = TRUE)
+desvest <- sd(ldf1_anchura_craneo, na.rm = TRUE)
+q3 <- quantile(ldf1_anchura_craneo, probs = 0.75, na.rm = TRUE)
+max <- max(ldf1_anchura_craneo, na.rm = TRUE)
+s <- skewness(ldf1_anchura_craneo)
+c <- kurtosis(ldf1_anchura_craneo)
+```
+
+```{r}
+descriptivos_satvida <- as.numeric(c(min, q1, media, media_rec, mediana, moda,
+                          var, desvest, q3, max, s, c))
+nombres <- c("Mínimo", "Q1", "Media", "Media recortada", "Mediana", "Moda",
+             "Varianza", "Desviación Estándar", "Q3", "Máximo", "Simetría", "Curtosis")
+```
+
+```{r}
+descr2 <- as.data.frame(rbind(nombres,descriptivos_satvida))
+descr2
+```
+```{r}
+
+d <- rbind(min = min(ldf1_anchura_craneo, na.rm = TRUE),
+q1  = quantile(ldf1_anchura_craneo, probs = 0.25, na.rm = TRUE),
+media = mean.default(ldf1_anchura_craneo, na.rm = TRUE),
+media_rec = mean.default(ldf1_anchura_craneo, trim = 0.025, na.rm = TRUE),
+mediana = median.default(ldf1_anchura_craneo, na.rm = TRUE),
+moda = mfv(ldf1_anchura_craneo),
+var = var(ldf1_anchura_craneo, na.rm = TRUE),
+desvest = sd(ldf1_anchura_craneo, na.rm = TRUE),
+q3 = quantile(ldf1_anchura_craneo, probs = 0.75, na.rm = TRUE),
+max = max(ldf1_anchura_craneo, na.rm = TRUE),
+s = skewness(ldf1_anchura_craneo),
+c = kurtosis(ldf1_anchura_craneo))
+```
+
+```{r}
+knitr::kable(d)
+```
+
+
+```{r}
+
+desc <-kable(descr(ldf_1$Anchura_del_craneo, style = "simple", justify = "center", headings = FALSE),digits = round(2))
+desc
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+descr(ldf1_anchura_craneo, transpose = TRUE, 
+      stats = c("N.Valid", "min","q1","med","mean","sd","q3","max","iqr"),
+      style = "rmarkdown", justify = "center",headings = F)
+```
+
+```{r warning=FALSE}
+knitr::kable(descr(cbind(ldf_1$Anchura_del_craneo,ldf_2$Anchura_del_craneo), style = "simple", justify = "center", headings = FALSE))
+```
 
