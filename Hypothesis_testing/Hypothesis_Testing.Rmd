@@ -41,8 +41,6 @@ library(summarytools)
 
 ```{r,warning=FALSE}
 
-
-
 craneos <- read_excel("C:/Users/Laura/Dropbox/UCM/Estadistica/Tarea/Libro1.xlsx")
 datos <- as.data.frame(craneos)
 
@@ -51,7 +49,7 @@ source('Funciones.R')
 ```
 
 ***
-# Análisis Descriptivo 
+
 
 ```{r}
 str(datos)
@@ -72,75 +70,217 @@ ldf2_anchura_craneo <-ldf_2$Anchura_del_craneo
 ```
 
 
-```{r}
-st_options(descr.silent = TRUE)
-as.data.frame(descr(ldf1_anchura_craneo,
-      stats     = c("mean", "sd"),
-      transpose = TRUE,
-      headings  = TRUE,
-      round.digits = 2))
+```{r warning=FALSE}
+knitr::kable(descr(cbind(ldf1_anchura_craneo,ldf2_anchura_craneo), style = "simple", justify = "center", headings = FALSE))
 ```
 
-```{r echo=TRUE}
-min <- min(ldf1_anchura_craneo, na.rm = TRUE)
-q1 <- quantile(ldf1_anchura_craneo, probs = 0.25, na.rm = TRUE)
-media <- mean.default(ldf1_anchura_craneo, na.rm = TRUE)
-media_rec <- mean.default(ldf1_anchura_craneo, trim = 0.025, na.rm = TRUE)
-mediana <- median.default(ldf1_anchura_craneo, na.rm = TRUE)
-moda <- mfv(ldf1_anchura_craneo)
-var <- var(ldf1_anchura_craneo, na.rm = TRUE)
-desvest <- sd(ldf1_anchura_craneo, na.rm = TRUE)
-q3 <- quantile(ldf1_anchura_craneo, probs = 0.75, na.rm = TRUE)
-max <- max(ldf1_anchura_craneo, na.rm = TRUE)
-s <- skewness(ldf1_anchura_craneo)
-c <- kurtosis(ldf1_anchura_craneo)
-```
+```{r -- Coeficiente de asimetría de Fisher y curtosis}
+skewness_predinastico_temprano <- skewness(ldf1_anchura_craneo)
+kurtosis_predinastico_temprano <- kurtosis(ldf1_anchura_craneo)
 
-```{r}
-descriptivos_satvida <- as.numeric(c(min, q1, media, media_rec, mediana, moda,
-                          var, desvest, q3, max, s, c))
-nombres <- c("Mínimo", "Q1", "Media", "Media recortada", "Mediana", "Moda",
-             "Varianza", "Desviación Estándar", "Q3", "Máximo", "Simetría", "Curtosis")
-```
-
-```{r}
-descr2 <- as.data.frame(rbind(nombres,descriptivos_satvida))
-descr2
-```
-```{r}
-
-d <- rbind(min = min(ldf1_anchura_craneo, na.rm = TRUE),
-q1  = quantile(ldf1_anchura_craneo, probs = 0.25, na.rm = TRUE),
-media = mean.default(ldf1_anchura_craneo, na.rm = TRUE),
-media_rec = mean.default(ldf1_anchura_craneo, trim = 0.025, na.rm = TRUE),
-mediana = median.default(ldf1_anchura_craneo, na.rm = TRUE),
-moda = mfv(ldf1_anchura_craneo),
-var = var(ldf1_anchura_craneo, na.rm = TRUE),
-desvest = sd(ldf1_anchura_craneo, na.rm = TRUE),
-q3 = quantile(ldf1_anchura_craneo, probs = 0.75, na.rm = TRUE),
-max = max(ldf1_anchura_craneo, na.rm = TRUE),
-s = skewness(ldf1_anchura_craneo),
-c = kurtosis(ldf1_anchura_craneo))
-```
-
-```{r}
-knitr::kable(d)
+skewness_predinastico_tardio <- skewness(ldf2_anchura_craneo)
+kurtosis_predinastico_tardio <- kurtosis(ldf_2$Anchura_del_craneo)
+knitr::kable(cbind(skewness_predinastico_temprano,skewness_predinastico_tardio,kurtosis_predinastico_temprano,kurtosis_predinastico_tardio))
 ```
 
 
-```{r}
 
-desc <-kable(descr(ldf_1$Anchura_del_craneo, style = "simple", justify = "center", headings = FALSE),digits = round(2))
-desc
+```{r -- Rango}
+x <- range(ldf1_anchura_craneo,na.rm = TRUE)
+Rango_predinastico_temprano <- diff(x)
+
+x1 <- range(ldf2_anchura_craneo,na.rm = TRUE)
+Rango_predinastico_tardio<- diff(x1)
+knitr::kable(cbind(Rango_predinastico_temprano,Rango_predinastico_tardio))
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
-descr(ldf1_anchura_craneo, transpose = TRUE, 
-      stats = c("N.Valid", "min","q1","med","mean","sd","q3","max","iqr"),
-      style = "rmarkdown", justify = "center",headings = F)
-```
 
 ```{r warning=FALSE}
-knitr::kable(descr(cbind(ldf_1$Anchura_del_craneo,ldf_2$Anchura_del_craneo), style = "simple", justify = "center", headings = FALSE))
+dist <- fdt(ldf1_anchura_craneo,breaks = 'Sturges')
+knitr::kable(dist)
+
+
+dist2 <- fdt(ldf2_anchura_craneo,breaks = 'Sturges')
+knitr::kable(dist2)
+
 ```
+```{r}
+par(mfrow=c(2,2))
+
+hist(ldf1_anchura_craneo, breaks = "Sturges",main = "Periodo Predinástico temprano", col = "blue")
+plot(dist, type="cfh", col = "blue")
+
+hist(ldf2_anchura_craneo, breaks = "Sturges",main = "Periodo Predinástico tardío", col = "purple")
+plot(dist, type="cfh", col = "purple")
+
+
+```
+
+
+```{r boxplot continua frente a categorica}
+b1 <- boxplot(formula = Anchura_del_craneo ~ Epoca_historica, data =  datos, col = rainbow(ncol(trees)))
+
+```
+
+```{r}
+qqnorm(ldf1_anchura_craneo, pch = 1, frame = FALSE, main = 'Predinástico temprano')
+qqline(ldf1_anchura_craneo, col = "blue", lwd = 2)
+
+qqnorm(ldf2_anchura_craneo, pch = 1, frame = FALSE, main = 'Predinástico tardío')
+qqline(ldf2_anchura_craneo, col = "purple", lwd = 2)
+```
+***
+
+# Análisis Descriptivo 
+
+- Nos enfrentamos a variables de tipo continuas.
+- Podriamos intuir que nos enfrentamos a una distribución normal simétrica por los resultados de los datos, aunque, intentaremos mostrarlo mas adelante, pues, la media, mediana y moda tienen un resultado similar. 
+- La dispersión respecto a la media en el periodo predinástico tardío es mayor que en el predinástico temprano. 
+- La variabilidad respecto a la media en el periodo predinástico tardío es mayor que en el predinástico temprano. 
+- En terminos del coeficiente de variación, vemos muy poca dispersión relativa, lo que indica poca variabilidad , a pesar, que en el predonástico tardío aumenta, es muy bajo este indicador.
+- La distribución para predonástico temprano presenta una asimetría positiva y se alarga a valores mayores que la media.
+- La distribución para predonástico tardío presenta una asimetría positiva, aunque mas pequeña, se alarga también para valores mayores a la media, podriamos decir que tienen una mejor distribución de los datos respecto a la media.
+-  Nos enfrentamos en ambos periodos a una mayor concentración de los datos al rededor o entorno a la media, aunque en gran medida en el Predinástico temprano. 
+- Veamos que entre periodos si se ve un aumento en el tamaño de craneos, por ejemplo, la media del predinástico tardío es mayor y el 75% de los datos se encuentra por debajo de la misma, lo que indica una mayor dispersión de los datos. 
+- En el periodo predinástico temprano vemos que el 50% de la anchura del craneo se encuentra por debajo 131.5, lo que indica una distribución simetrica con una buena distribución en los datos. 
+
+
+***
+# Análisis de distribución de las variables 
+
+Lo ideal en este apartado es considerar nuestra hipótesis nula como que los datos tienen una distribución normal , y considerar la alternativa como que estas no admiten dicha distribución. Con este hecho, intentaremos cometer un error tipo I, es decir, nuestro p-value sea menor a un nivel de significancia del 5% para así poder rechazar la hiótesis nula. 
+
+$$ H_{0} = \text{los datos proceden de una distribución normal.}$$ 
+$$ X \backsim N(mean(x), std(x))$$
+$$ H_{1} =\text{los datos NO proceden de una distribución normal.}$$
+$$ X \nsim N(mean(x), std(x))$$
+
+De antemano el test de Kolmogorov-Smirnov asume conocida la media y varianza poblacional, lo que, en la mayoría de los casos, es imposible conocer. Esto hace que el test sea poco potente. Para solventar este problema, se desarrolló una modificación del Kolmogorov-Smirnov conocida como test Lilliefors. El test Lilliefors asume que la media y y varianza son desconocidas, estando especialmente desarrollado para testear la normalidad.
+
+
+## Test Lilliefors (Kolmogorov-Smirnov) Predinástico temprano ##
+
+```{r}
+lillie.test(ldf1_anchura_craneo)
+```
+$$\text{p_value} = 9.677e-05 < 0.05 = \alpha$$ 
+Por lo tanto, hay suficientes indicios para rechazar $H_{0}$ .Aceptamos con el 95% nuestra hipótesis alternativa. Por esto mismo se puede decir que la muestra del periodo predinástico temprano para anchura de cráneos no sigue una distribución normal.
+
+## Test Lilliefors (Kolmogorov-Smirnov) Predinástico tardío ##
+
+```{r}
+lillie.test(ldf2_anchura_craneo)
+```
+
+$$\text{p_value} =  0.0001938 < 0.05 = \alpha$$
+
+Por lo tanto, hay suficientes indicios para rechazar $H_{0}$. Aceptamos con el 95% nuestra hipótesis alternativa. Por esto mismo se puede decir que la muestra del periodo predinástico tardío para anchura de cráneos no sigue una distribución normal.
+
+- Con lo anterior podriamos suponer que nuestros datos podrían tener una distribución t-student, pues funciona bien para tamaños de muestras pequeños ,pero para ello vamos a verificar las condiciones necesarias para aplicar el test de la t-student. 
+
+
+*** 
+# Intervalo de Confianza 
+
+Con lo anterior tenemos un intervalo de confianza(de nivel 0.9, de nivel 0.95 y de nivel 0.99)  para la diferencia entre las medias de la anchura de la cabeza en ambos periodos históricos.
+
+
+```{r}
+t.test(x=ldf1_anchura_craneo, y=ldf2_anchura_craneo, paired=TRUE, conf.level=0.9)$conf.int
+t.test(x=ldf1_anchura_craneo, y=ldf2_anchura_craneo, paired=TRUE, conf.level=0.95)$conf.int
+t.test(x=ldf1_anchura_craneo, y=ldf2_anchura_craneo, paired=TRUE, conf.level=0.99)$conf.int
+
+
+```
+
+
+## Story telling ##
+
+
+Dado que en ninguno de los tres niveles, el intervalo incluye el cero, podemos rechazar la hipótesis de que la población real tiene una distribución normal con media cero, como lo habiamos confirmaddo en el test KS. Más aún, para un nivel de confianza del 90%, -1.30 < U < -0.56 esto indica que $$\mu_{predin\_temprano} - \mu_{predin\_tardio}>0 $$ y por tanto $$\mu_{predin\_temprano} > \mu_{predin\_tardio} $$. Analogamente, para niveles de confianza del 95% y 99%. Lo que indica que en el primer periodo predinástico temprano la cabeza era mas ancha. 
+
+
+***
+
+# Test t (Contraste de medias)
+
+Admitiremos de forma natural la independencia entre ambas muestras, así que esa condición no hace falta comprobarla.
+
+
+Para poder aplicar tes-t veamos que se cumplen las condiciones necesarias para muestras independientes,
+
+-Independencia (Verdadero): Las observaciones tienen que ser independientes unas de las otras. Para ello el muestreo debe ser aleatorio y el tamaño de la muestra inferior al 10% de la población. Se puede asumir que ambas muestras son independientes.
+
+- Normalidad (Falso): Las poblaciones que se comparan tienen que distribuirse de forma normal. A pesar de que la condición de normalidad recae sobre las poblaciones, normalmente no se dispone de información sobre ellas por lo que las muestras (dado que son reflejo de la población) tiene que distribuirse de forma aproximadamente normal. En caso de cierta asimetría los t-test son considerablemente robustos cuando el tamaño de las muestras es mayor o igual a 30. Se ha demostrado en el apartado anterior que ambas muestras predinástico temprano y tardío para la anchura de cráneos NO sigue una distribución normal.
+
+```{r}
+a <- var(ldf1_anchura_craneo)
+b <- var(ldf2_anchura_craneo)
+a-b
+```
+
+Mediante las muestras se puede observar que la muestra del periodo predinástico tardío es ligeramente superior.
+
+- Igualdad de varianza (Verdadero): la varianza de ambas poblaciones comparadas debe de ser igual. Tal como ocurre con la condición de normalidad, si no se dispone de información de las poblaciones, esta condición se ha de asumir a partir de las muestras.
+
+*** 
+
+# Test Levene (contraste de varianzas)
+
+Verifiquemos con Levene test si podemos rechazar la hipótesis nula de que las varianzas son iguales, 
+
+```{r}
+leveneTest(datos$Anchura_del_craneo,datos$Epoca_historica)
+```
+$$\text{p_value} = 0.4344 > 0.05 = \alpha$$ 
+Por lo tanto, NO hay suficientes indicios para rechazar $H _{0}$. Por esto mismo, no se puede rechazar la hipótesis de que las varianzas de ambas muestras son iguales, es decir, no hay evidencias en contra de la igualdad de varianzas. 
+
+*** 
+# Test de Mann–Whitney–Wilcoxon / U-test (no paramétrico)
+
+
+El test de Mann–Whitney–Wilcoxon (WMW), también conocido como Wilcoxon rank-sum test o u-test, es un test no paramétrico que contrasta si dos muestras proceden de poblaciones equidistribuidas.
+
+La idea en la que se fundamental este test es la siguiente: si las dos muestras comparadas proceden de la misma población, al juntar todas las observaciones y ordenarlas de menor a mayor, cabría esperar que las observaciones de una y otra muestra estuviesen intercaladas aleatoriamente. Por lo contrario, si una de las muestras pertenece a una población con valores mayores o menores que la otra población, al ordenar las observaciones, estas tenderán a agruparse de modo que las de una muestra queden por encima de las de la otra.
+
+
+CONDICIONES:
+
+-Los datos tienen que ser independientes.
+-Los datos tienen que ser ordinales o bien se tienen que poder ordenar de menor a mayor.
+-No es necesario asumir que las muestras se distribuyen de forma normal o que proceden de poblaciones normales. Pero, para que el test compare medianas, ambas han de tener el mismo tipo de distribución (varianza, asimetría…).
+-Igualdad de varianza entre grupos (homocedasticidad).
+
+
+```{r warning=FALSE}
+wilcox.test(x = ldf1_anchura_craneo, y = ldf2_anchura_craneo, alternative = "two.sided", mu = 0, paired = FALSE, conf.int = 0.95)
+wilcox.test(datos$Anchura_del_craneo~ datos$Epoca_historica, data = datos, distribution = "exact", conf.int=0.95)
+```
+
+
+$$\text{p_value} =  0.0003305 < 0.05 = \alpha$$ 
+
+Por lo tanto, hay suficientes indicios para rechazar $H_{0}$. Lo que indica, que el p-value muestra fuerte evidencia en contra de la igualdad de medias. 
+
+
+Apesar que las condiciones para el test t no se cumplan , validaremos los resultados de la prueba. 
+
+***
+
+# Test t 
+
+```{r}
+t.test(x = ldf1_anchura_craneo, y = ldf2_anchura_craneo, alternative = "two.sided", mu = 0, paired = TRUE, conf.level = 0.95)
+```
+
+
+Indudablemente con fuerte evidencia en contra rechazamos la hipótesis de igualdad de medias, sin embargo, apesar de que no se cumplen las condiciones para aplicar el t-test, lo incluimos en nuestro estudio para comprender que para muestras de tamaño pequeñas siempre que se satisfagan las condiciones se puede o no aplicar el test. 
+
+
+
+
+
+
+
+
 
